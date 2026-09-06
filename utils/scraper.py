@@ -1,5 +1,7 @@
-from playwright.sync_api import sync_playwright
+from playwright.async_api import async_playwright
 from .helper import render_actions
+from time import time
+from api.supabase_client import update_action
 
 user_actions = ["click", "fill", "check", "hover"]
 
@@ -35,19 +37,22 @@ scraper_actions = [
 ]
 
 
-def run_actions(url, actions):
-    with sync_playwright() as p:
+async def run_actions(url, actions, automation_id):
+    async with async_playwright() as p:
         # Channel can be "chrome", "msedge", "chrome-beta", "msedge-beta" or "msedge-dev".
-        browser = p.chromium.launch(channel="chrome")
-        page = browser.new_page()
-        page.goto(url)
+        browser = await p.chromium.launch(channel="chrome")
+        page = await browser.new_page()
+        await page.goto(url)
 
         results = []
 
         for action in actions:
-            result = render_actions(page=page, user_action=action)
+            result = await render_actions(
+                page=page, user_action=action.model_dump(), automation_id=automation_id
+            )
             results.append(result)
-
-        browser.close()
+            update_action(automation_id=automation_id, action_id=action.id, logs=result)
+            print(action.id)
+        await browser.close()
 
         return results
