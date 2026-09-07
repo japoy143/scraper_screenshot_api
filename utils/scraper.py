@@ -51,7 +51,6 @@ async def run_actions(url, actions, automation_id):
                 page=page, user_action=action.model_dump(), automation_id=automation_id
             )
             results.append(result)
-            update_action(automation_id=automation_id, action_id=action.id, logs=result)
             print(action.id)
         await browser.close()
 
