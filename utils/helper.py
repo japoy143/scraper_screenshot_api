@@ -36,7 +36,7 @@ async def render_actions(page: Page, user_action: dict, automation_id: str):
     match action:
         case "get_by_role":
             current_action = page.get_by_role(
-                role=role, name=re.compile(name, re.IGNORECASE)
+                role=role.lower(), name=re.compile(name, re.IGNORECASE)
             )
             await render_secondary_actions(current_action, secondary_action, input_data)
             await publish(

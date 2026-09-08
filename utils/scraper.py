@@ -1,40 +1,8 @@
 from playwright.async_api import async_playwright
 from .helper import render_actions
-from time import time
 from api.supabase_client import update_action
 
 user_actions = ["click", "fill", "check", "hover"]
-
-scraper_actions = [
-    {
-        "action": "get_by_role",
-        "role": "",
-        "name": "",
-        "secondary_action": "",
-        "input": "",
-    },
-    {
-        "action": "locator",
-        "role": "",
-        "name": "",
-        "secondary_action": "",
-        "input": "",
-    },
-    {
-        "action": "screenshot",
-        "role": "",
-        "name": "",
-        "secondary_action": "",
-        "input": "",
-    },
-    {
-        "action": "new_page",
-        "role": "",
-        "name": "",
-        "secondary_action": "",
-        "input": "",
-    },
-]
 
 
 async def run_actions(url, actions, automation_id):

@@ -1,13 +1,19 @@
 from utils.scraper import run_actions
 from fastapi import FastAPI, Request
 from fastapi.responses import StreamingResponse
+from fastapi.middleware.cors import CORSMiddleware
 from slowapi import (
     Limiter,
     _rate_limit_exceeded_handler,
 )  # rate limit ref: https://shiladityamajumder.medium.com/using-slowapi-in-fastapi-mastering-rate-limiting-like-a-pro-19044cb6062b
 from slowapi.errors import RateLimitExceeded
-from schema.type import ScrapeRequest, Automations
-from api.supabase_client import add_run_automation, delete_execution
+from schema.type import ScrapeRequest, Automations, AutomationTemplate
+from api.supabase_client import (
+    add_run_automation,
+    delete_execution,
+    save_template,
+    get_template,
+)
 from events.manager import subscribe, unsubscribe
 import asyncio
 import json
@@ -21,6 +27,15 @@ limiter = Limiter(key_func=lambda request: request.client.host)
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 # Register Error Handler
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
@@ -82,3 +97,39 @@ async def events(request: Request, subscriber_id: str):
             unsubscribe(subscriber_id)
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+
+# can only save 5 per minute minimizing database usage
+# disable this when scaled
+@app.post("/templates/save")
+@limiter.limit("5/minute")
+def template_save(request: Request, payload: AutomationTemplate):
+
+    try:
+        user_id = payload.user_id
+        automation_name = payload.automation_name
+        template_id = payload.template_id
+        actions = payload.actions
+        res = save_template(
+            user_id=user_id,
+            automation_name=automation_name,
+            template_id=template_id,
+            actions=actions,
+        )
+        print(res)
+        return res
+    except Exception as exception:
+        print(exception)
+        return exception
+
+
+@app.get("/templates/{user_id}")
+@limiter.limit("10/minute")
+def get_user_templates(request: Request, user_id: str):
+    try:
+        res = get_template(user_id)
+        return res
+
+    except Exception as exception:
+        print(exception)
+        return exception

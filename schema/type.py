@@ -24,3 +24,10 @@ class ScrapeRequest(BaseModel):
     automation_id: str
     url: str
     actions: List[Actions]
+
+
+class AutomationTemplate(BaseModel):
+    user_id: str
+    automation_name: str
+    template_id: str
+    actions: List[Actions]

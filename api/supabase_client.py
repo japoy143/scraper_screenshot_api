@@ -13,6 +13,7 @@ client: Client = create_client(url, key)
 
 # tables
 automations_table = "automations"
+templates_table = "templates"
 # buckets
 screenshot_buckets = "screenshots"
 
@@ -116,3 +117,35 @@ def upload_screenshot(file_path):
         print(response)
         url = client.storage.from_("screenshots").get_public_url(storage_path)
         return url
+
+
+# save template automation
+def save_template(user_id, automation_name, template_id, actions):
+    try:
+        response = (
+            client.table(templates_table)
+            .insert(
+                {
+                    "user_id": user_id,
+                    "automation_name": automation_name,
+                    "template_id": template_id,
+                    "automations": [action.model_dump() for action in actions],
+                }
+            )
+            .execute()
+        )
+        print(response)
+        return response
+    except Exception as exception:
+        print(f"Error saving automation template")
+        return exception
+
+
+def get_template(id):
+    try:
+        response = client.table(templates_table).select("*").eq("user_id", id).execute()
+        print(response)
+        return response
+    except Exception as exception:
+        print(f"Error getting templates")
+        return exception
