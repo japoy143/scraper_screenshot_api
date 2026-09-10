@@ -52,7 +52,7 @@ def read_item(item_id: int, q: str | None = None):
 
 
 @app.post("/scrape/actions")
-@limiter.limit("3/minute")  # means 3 request per minute
+@limiter.limit("10/minute")  # means 3 request per minute
 async def scrape(request: Request, payload: ScrapeRequest):
     # values
     actions = payload.actions
