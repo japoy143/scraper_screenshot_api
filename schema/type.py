@@ -31,3 +31,7 @@ class AutomationTemplate(BaseModel):
     automation_name: str
     template_id: str
     actions: List[Actions]
+
+
+class DeleteScreenshotsRequest(BaseModel):
+    files: list[str]

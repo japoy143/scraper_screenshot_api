@@ -4,6 +4,7 @@ from supabase import create_client, Client
 from schema.type import Automations
 from pathlib import Path
 import mimetypes
+from datetime import datetime, timedelta, timezone
 
 load_dotenv()
 
@@ -14,6 +15,7 @@ client: Client = create_client(url, key)
 # tables
 automations_table = "automations"
 templates_table = "templates"
+screenshots_table = "screenshots"
 # buckets
 screenshot_buckets = "screenshots"
 
@@ -97,6 +99,43 @@ def delete_execution(automation_id):
         return exception
 
 
+def add_screenshots(screenshot_url):
+    try:
+        response = (
+            client.table(screenshots_table)
+            .insert(
+                {
+                    "screenshot_url": screenshot_url,
+                }
+            )
+            .execute()
+        )
+        print(response)
+        return response
+    except Exception as exception:
+        print(f"Error inserting screenshots")
+        return exception
+
+
+def get_all_screenshot_expired_and_delete():
+    try:
+        # Calculate the cutoff time (1 hour ago from now)
+        one_hour_ago = datetime.now(timezone.utc) - timedelta(hours=1)
+        cutoff_iso = one_hour_ago.isoformat()
+
+        response = (
+            client.table(screenshots_table)
+            .select("*")
+            .lte("created_at", cutoff_iso)  # created_at <= 1 hour ago
+            .execute()
+        )
+        print(response)
+        return response
+    except Exception as exception:
+        print(f"Error getting screenshots: {exception}")
+        return exception
+
+
 # base url = https://vieqcasgkbxjockpxiti.supabase.co/storage/v1/object/public/screenshots/outputs/
 # file storage
 def upload_screenshot(file_path):
@@ -117,6 +156,16 @@ def upload_screenshot(file_path):
         print(response)
         url = client.storage.from_("screenshots").get_public_url(storage_path)
         return url
+
+
+def delete_screenshots(files):
+    try:
+        response = client.storage.from_("screenshots").remove(files)
+        print(response)
+        return response
+    except Exception as exception:
+        print(exception)
+        return exception
 
 
 # save template automation

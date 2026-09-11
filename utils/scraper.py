@@ -1,6 +1,5 @@
 from playwright.async_api import async_playwright
 from .helper import render_actions
-from api.supabase_client import update_action
 
 user_actions = ["click", "fill", "check", "hover"]
 
@@ -16,7 +15,9 @@ async def run_actions(url, actions, automation_id):
 
         for action in actions:
             result = await render_actions(
-                page=page, user_action=action.model_dump(), automation_id=automation_id
+                page=page,
+                user_action=action.model_dump(),
+                automation_id=automation_id,
             )
             results.append(result)
             print(action.id)

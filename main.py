@@ -7,12 +7,19 @@ from slowapi import (
     _rate_limit_exceeded_handler,
 )  # rate limit ref: https://shiladityamajumder.medium.com/using-slowapi-in-fastapi-mastering-rate-limiting-like-a-pro-19044cb6062b
 from slowapi.errors import RateLimitExceeded
-from schema.type import ScrapeRequest, Automations, AutomationTemplate
+from schema.type import (
+    ScrapeRequest,
+    Automations,
+    AutomationTemplate,
+    DeleteScreenshotsRequest,
+)
 from api.supabase_client import (
     add_run_automation,
     delete_execution,
     save_template,
     get_template,
+    delete_screenshots,
+    get_all_screenshot_expired_and_delete,
 )
 from events.manager import subscribe, unsubscribe
 import asyncio
@@ -36,14 +43,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 # Register Error Handler
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
+# @app.get("/")
+# def read_root():
+#     return {"Hello": "World"}
 
 
 @app.get("/items/{item_id}")
@@ -130,6 +138,30 @@ def get_user_templates(request: Request, user_id: str):
         res = get_template(user_id)
         return res
 
+    except Exception as exception:
+        print(exception)
+        return exception
+
+
+@app.post("/screenshot/remove")
+@limiter.limit("3/minute")
+def delete_all_screenshots(request: Request, files: DeleteScreenshotsRequest):
+    try:
+        res = delete_screenshots(files)
+        print(res)
+        return res
+    except Exception as exception:
+        print(exception)
+        return exception
+
+
+@app.post("/screenshot/remove/expired")
+@limiter.limit("1/minute")
+def delete_expire_screenshots(request: Request):
+    try:
+        res = get_all_screenshot_expired_and_delete()
+        print(res)
+        return res
     except Exception as exception:
         print(exception)
         return exception

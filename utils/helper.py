@@ -3,7 +3,7 @@ from pathlib import Path
 import uuid
 from playwright.async_api import Page, Locator
 from events.manager import publish
-from api.supabase_client import upload_screenshot
+from api.supabase_client import upload_screenshot, add_screenshots
 import asyncio
 
 user_actions = ["click", "fill", "check", "hover"]
@@ -73,6 +73,7 @@ async def render_actions(page: Page, user_action: dict, automation_id: str):
             await page.screenshot(path=path)
             await asyncio.sleep(0.2)
             file_path = upload_screenshot(str(path))
+            add_screenshots(file_path)
             path.unlink()
             print(path)
             await publish(
