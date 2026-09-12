@@ -1,6 +1,6 @@
 from utils.scraper import run_actions
 from fastapi import FastAPI, Request
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import (
     Limiter,
@@ -36,9 +36,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-    ],
+    allow_origins=["http://localhost:3000", "https://scrapeflow-9nm8.vercel.app/"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -78,11 +76,13 @@ async def scrape(request: Request, payload: ScrapeRequest):
     add_run_automation(automation=automation)
     try:
 
-        results = await run_actions(url, actions, automation_id)
-        return {"results": results}
+        result = await run_actions(url, actions, automation_id)
+        return {"success": True, "result": result}
     except Exception as exception:
         delete_execution(automation_id=automation_id)
-        return exception
+        return JSONResponse(
+            status_code=500, content={"success": False, "error": str(exception)}
+        )
 
 
 @app.get("/events/{subscriber_id}")
@@ -125,10 +125,12 @@ def template_save(request: Request, payload: AutomationTemplate):
             actions=actions,
         )
         print(res)
-        return res
+        return {"success": True, "result": res}
     except Exception as exception:
         print(exception)
-        return exception
+        return JSONResponse(
+            status_code=500, content={"success": False, "error": str(exception)}
+        )
 
 
 @app.get("/templates/{user_id}")
@@ -136,23 +138,27 @@ def template_save(request: Request, payload: AutomationTemplate):
 def get_user_templates(request: Request, user_id: str):
     try:
         res = get_template(user_id)
-        return res
+        return {"success": True, "result": res}
 
     except Exception as exception:
         print(exception)
-        return exception
+        return JSONResponse(
+            status_code=500, content={"success": False, "error": str(exception)}
+        )
 
 
 @app.post("/screenshot/remove")
 @limiter.limit("3/minute")
-def delete_all_screenshots(request: Request, files: DeleteScreenshotsRequest):
+def delete_all_screenshots(request: Request, data: DeleteScreenshotsRequest):
     try:
-        res = delete_screenshots(files)
+        res = delete_screenshots(data.files)
         print(res)
-        return res
+        return {"success": True, "result": res}
     except Exception as exception:
         print(exception)
-        return exception
+        return JSONResponse(
+            status_code=500, content={"success": False, "error": str(exception)}
+        )
 
 
 @app.post("/screenshot/remove/expired")
@@ -164,4 +170,6 @@ def delete_expire_screenshots(request: Request):
         return res
     except Exception as exception:
         print(exception)
-        return exception
+        return JSONResponse(
+            status_code=500, content={"success": False, "error": str(exception)}
+        )

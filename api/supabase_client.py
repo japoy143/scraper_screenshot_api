@@ -47,7 +47,7 @@ def add_run_automation(automation: Automations):
             .execute()
         )
         print(response)
-        return response
+        return response.data
     except Exception as exception:
         print(f"Error inserting automations")
         return exception
@@ -93,7 +93,7 @@ def delete_execution(automation_id):
             .eq("automation_id", automation_id)
             .execute()
         )
-        return response
+        return response.data
     except Exception as exception:
         print(f"Error deleting action: {exception}")
         return exception
@@ -111,7 +111,7 @@ def add_screenshots(screenshot_url):
             .execute()
         )
         print(response)
-        return response
+        return response.data
     except Exception as exception:
         print(f"Error inserting screenshots")
         return exception
@@ -130,7 +130,7 @@ def get_all_screenshot_expired_and_delete():
             .execute()
         )
         print(response)
-        return response
+        return response.data
     except Exception as exception:
         print(f"Error getting screenshots: {exception}")
         return exception
@@ -184,7 +184,7 @@ def save_template(user_id, automation_name, template_id, actions):
             .execute()
         )
         print(response)
-        return response
+        return response.data
     except Exception as exception:
         print(f"Error saving automation template")
         return exception
@@ -194,7 +194,7 @@ def get_template(id):
     try:
         response = client.table(templates_table).select("*").eq("user_id", id).execute()
         print(response)
-        return response
+        return response.data
     except Exception as exception:
         print(f"Error getting templates")
         return exception
